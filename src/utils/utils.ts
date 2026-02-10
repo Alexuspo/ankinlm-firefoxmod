@@ -41,14 +41,14 @@ export const createStyledButton = (
   return button as HTMLElement;
 };
 
-export const createCsvBlob = (data: string): Blob | undefined => {
+export const createCsvString = (data: string): string | undefined => {
   const parsedData = JSON.parse(data);
 
-  let rows: string[] = [];
+  const rows: string[] = [];
 
   function escapeCsvField(field: string) {
     const escaped = field.replace(/"/g, '""');
-    if (/[\t\n"]/.test(escaped)) {
+    if (/[\t\n"]/ .test(escaped)) {
       return `"${escaped}"`;
     }
     return escaped;
@@ -72,7 +72,14 @@ export const createCsvBlob = (data: string): Blob | undefined => {
     }
   }
 
-  const csv = rows.join('\n');
+  if (!rows.length) return undefined;
+
+  return rows.join('\n');
+};
+
+export const createCsvBlob = (data: string): Blob | undefined => {
+  const csv = createCsvString(data);
+  if (!csv) return undefined;
   const BOM = '\uFEFF'; // UTF-8
   return new Blob([BOM + csv], { type: 'text/csv;charset=utf-8' });
 };

@@ -94,6 +94,37 @@ This add-on has shown the most consistent rendering results with CSVs generated 
 
 ### **Firefox Add-ons**
 
-Soon
+Until the AMO listing ships you can sideload the Firefox bundle:
+
+1. Install dependencies with `pnpm install`.
+2. Build the MV2 bundle via `pnpm build:firefox` (or create a distributable zip with `pnpm zip:firefox`).
+3. Open `about:debugging#/runtime/this-firefox` in Firefox and choose **Load Temporary Add-on…**.
+4. Select `dist/firefox-mv2/manifest.json` to load the extension.
+
+---
+
+## **Local Development (GitHub Clone)**
+
+After cloning this repository from GitHub:
+
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+2. Start a development build for Chrome:
+   ```bash
+   pnpm dev
+   ```
+3. Or for Firefox (MV2):
+   ```bash
+   pnpm dev:firefox
+   ```
+4. Production builds:
+   ```bash
+   pnpm build        # Chrome (MV3)
+   pnpm build:firefox  # Firefox (MV2)
+   ```
+
+The build output is stored in the `.output` directory and can be committed if you want to share a prebuilt version of the extension.
 
 

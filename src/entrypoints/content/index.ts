@@ -1,41 +1,57 @@
-import { createCsvBlob, createStyledButton } from '@/utils/utils';
+import { createCsvBlob, createCsvString } from '@/utils/utils';
 
-let contentScriptEntrypoint;
+const contentScriptEntrypoint = defineContentScript({
+  matches: ['https://notebooklm.google.com/*'],
+  allFrames: true,
+  main() {
+    let lastData: string | null = null;
+    let toolbar: HTMLDivElement | null = null;
 
-if (import.meta.env.FIREFOX) {
-  contentScriptEntrypoint = defineContentScript({
-    matches: ['https://notebooklm.google.com/*'],
-    main() {},
-  });
-} else {
-  contentScriptEntrypoint = defineContentScript({
-    matches: ['https://notebooklm.google.com/*'],
-    allFrames: true,
-    main() {
-      let footerContainer: Element | null;
-      const observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          for (const node of mutation.addedNodes) {
-            if (
-              node instanceof HTMLElement &&
-              node.matches('artifact-viewer') &&
-              node.classList.contains('ng-star-inserted')
-            ) {
-              footerContainer = node.querySelector(
-                '.artifact-viewer-container .artifact-footer'
-              );
-            }
-          }
+    window.addEventListener('message', (event) => {
+      if (event.data?.type !== 'NOTEBOOKLM_DATA' || typeof event.data.data !== 'string') return;
+      lastData = event.data.data;
+      ensureToolbar();
+    });
+
+    function ensureToolbar() {
+      if (toolbar || !lastData) return;
+
+      toolbar = document.createElement('div');
+      toolbar.style.position = 'fixed';
+      toolbar.style.right = '24px';
+      toolbar.style.bottom = '24px';
+      toolbar.style.zIndex = '99999';
+      toolbar.style.display = 'flex';
+      toolbar.style.gap = '8px';
+      toolbar.style.padding = '8px 12px';
+      toolbar.style.borderRadius = '999px';
+      toolbar.style.background = '#202124';
+      toolbar.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+      toolbar.style.color = '#fff';
+      toolbar.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.textContent = 'Copy CSV';
+      styleToolbarButton(copyBtn);
+      copyBtn.addEventListener('click', async () => {
+        if (!lastData) return;
+        const csv = createCsvString(lastData);
+        if (!csv) return;
+        try {
+          await navigator.clipboard.writeText(csv);
+        } catch (e) {
+          console.error('[AnkiNLM] Failed to copy CSV', e);
         }
       });
 
-      window.addEventListener('message', (event) => {
-        if (event.data.type === 'NOTEBOOKLM_DATA') handleNotebookLMData(event.data.data);
-      });
-
-      observer.observe(document.body, { childList: true, subtree: true });
-
-      function handleDownload(url: string) {
+      const downloadBtn = document.createElement('button');
+      downloadBtn.textContent = 'Download CSV';
+      styleToolbarButton(downloadBtn);
+      downloadBtn.addEventListener('click', () => {
+        if (!lastData) return;
+        const blob = createCsvBlob(lastData);
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         link.download = 'flashcards.csv';
@@ -43,38 +59,24 @@ if (import.meta.env.FIREFOX) {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-      }
+      });
 
-      function handleNotebookLMData(data: string) {
-        const blob = createCsvBlob(data);
-        if (!blob || !footerContainer) return;
+      toolbar.appendChild(copyBtn);
+      toolbar.appendChild(downloadBtn);
 
-        const copyBtn = createStyledButton(footerContainer, 'Copy', 'copy_all');
-        copyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText(data);
-        });
+      document.body.appendChild(toolbar);
+    }
 
-        const url = URL.createObjectURL(blob);
-        const downloadBtn = createStyledButton(footerContainer, 'Download', 'save_alt');
-
-        downloadBtn.addEventListener('click', () => handleDownload(url));
-        const donateBtn = createStyledButton(footerContainer, '', 'coffee', [], ['padding: 0']);
-
-        const coffeIcon = donateBtn.querySelector('mat-icon') as HTMLElement;
-        if (coffeIcon) coffeIcon.style.margin = '0px';
-        donateBtn.setAttribute('title', 'Buy Creator a Coffe :)');
-        Array.from(footerContainer.children).forEach((element) => {
-          const el = element as HTMLElement;
-          el.style.padding = '0px 20px 0px 20px';
-          el.style.marginRight = '10px';
-          el.style.color = '#ffffff';
-        });
-        donateBtn.addEventListener('click', () => {
-          window.open('https://buymeacoffee.com/lkmss', '_blank');
-        });
-      }
-    },
-  });
-}
+    function styleToolbarButton(button: HTMLButtonElement) {
+      button.style.border = '1px solid #5f6368';
+      button.style.background = '#303134';
+      button.style.color = '#fff';
+      button.style.borderRadius = '999px';
+      button.style.padding = '4px 10px';
+      button.style.fontSize = '12px';
+      button.style.cursor = 'pointer';
+    }
+  },
+});
 
 export default contentScriptEntrypoint;
