@@ -5,7 +5,7 @@
 
 ## **Overview**
 
-**AnkiNLM** is a lightweight browser extension that adds **“Copy CSV”** and **“Download CSV”** buttons to the bottom of the NotebookLM Studio flashcard panel.
+**AnkiNLM** is a lightweight Chrome and Firefox extension that adds **“Copy CSV”** and **“Download CSV”** buttons to the bottom of the NotebookLM Studio flashcard panel.
 With a single click, you get a fully formatted CSV ready for import into Anki — no rewriting, no manual cleanup.
 
 ---
@@ -85,16 +85,16 @@ This add-on has shown the most consistent rendering results with CSVs generated 
 
 ---
 
-## **Installation**
+## **Installation (Chrome & Firefox)**
 
 
 ### **Chrome Web Store**
 
 [Install](https://chromewebstore.google.com/detail/ecoealfdeebafjpmhjdlbdgpgegjeaem)
 
-### **Firefox Add-ons**
+### **Firefox**
 
-Until the AMO listing ships you can sideload the Firefox bundle:
+AnkiNLM plně podporuje Firefox na desktopu. Do oficiálního Firefox Add-ons katalogu můžeš nahrát připravený balíček, nebo ho dočasně sideloadnout takto:
 
 1. Install dependencies with `pnpm install`.
 2. Build the MV2 bundle via `pnpm build:firefox` (or create a distributable zip with `pnpm zip:firefox`).
